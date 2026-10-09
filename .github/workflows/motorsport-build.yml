@@ -1,4 +1,4 @@
-name: Minecraft Motorsport 0.9.1 stability build
+name: Minecraft Motorsport 0.9.2 cockpit seating fix
 on:
   push:
     branches: ['scratch/motorsport-0.7-build']
@@ -9,17 +9,19 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-      - name: Restore Java source
+      - name: Restore validated original Java source
         run: |
           cat motorsport-source/chunk-{01,02,03,04}.txt | base64 --decode > /tmp/motorsport-source.tar.xz
           echo '7e3b3b81678cdfefde31c0897b34b3c76e956e7a4207a8c338c2492f6dd35996  /tmp/motorsport-source.tar.xz' | sha256sum --check
           tar -xJf /tmp/motorsport-source.tar.xz
-      - name: Apply 1.21.4 fixes
+      - name: NeoForge 1.21.4 render-event compatibility
         run: python3 motorsport-source/compat_patch.py
-      - name: Keep fixed steering
+      - name: Fixed steering from 0.7.1
         run: python3 motorsport-source/wheel_fix_071.py
-      - name: Update car size, smooth seat, statue pose
+      - name: Preserve scaled model and cockpit posture from 0.9.1
         run: python3 motorsport-source/stability_fix_091.py
+      - name: Move visible driver inside cockpit
+        run: python3 motorsport-source/cockpit_fix_092.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -27,11 +29,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-      - name: Compile NeoForge
+      - name: Compile against NeoForge 21.4.158
         run: gradle --no-daemon --stacktrace build
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: MinecraftMotorsport-0.9.1-replacement-classes
+          name: MinecraftMotorsport-0.9.2-compiled
           path: build/libs/*.jar
           if-no-files-found: error
