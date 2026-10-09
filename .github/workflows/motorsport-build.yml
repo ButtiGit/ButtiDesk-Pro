@@ -15,6 +15,8 @@ jobs:
           echo '7e3b3b81678cdfefde31c0897b34b3c76e956e7a4207a8c338c2492f6dd35996  /tmp/motorsport-source.tar.xz' | sha256sum --check
           tar -xJf /tmp/motorsport-source.tar.xz
           find src/main -type f | wc -l
+      - name: Apply 1.21.4 compatibility fixes
+        run: python3 motorsport-source/compat_patch.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
