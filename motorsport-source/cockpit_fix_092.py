@@ -9,17 +9,13 @@ s=s.replace(old,"Math.sin(a) * 0.34, 0.32, -Math.cos(a) * 0.34")
 car.write_text(s)
 client=root/"client/ClientMotorsport.java"
 s=client.read_text()
-old='''                    double seatX = ix + Math.sin(angle) * 0.57;
-                    double seatY = iy + 0.35;
-                    double seatZ = iz - Math.cos(angle) * 0.57;'''
-new='''                    double seatX = ix + Math.sin(angle) * 0.34;
-                    double seatY = iy + 0.32;
-                    double seatZ = iz - Math.cos(angle) * 0.34;'''
+old='''                    event.getPoseStack().translate(ix + Math.sin(angle)*0.57 - px, iy + 0.35 - py,
+                            iz - Math.cos(angle)*0.57 - pz);'''
+new='''                    event.getPoseStack().translate(ix + Math.sin(angle)*0.34 - px,
+                            iy + 0.32 - py - 0.55,
+                            iz - Math.cos(angle)*0.34 - pz);'''
 assert s.count(old)==1
 s=s.replace(old,new)
-old='event.getPoseStack().translate(seatX - px, seatY - py, seatZ - pz);'
-assert s.count(old)==1
-s=s.replace(old,'event.getPoseStack().translate(seatX - px, seatY - py - 0.55, seatZ - pz);')
 client.write_text(s)
 p=Path("gradle.properties")
 v=p.read_text()
