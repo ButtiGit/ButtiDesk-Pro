@@ -47,3 +47,11 @@ props.write_text(props.read_text().replace("mod_version=0.7.0", "mod_version=0.7
 assert "float frontYaw = -steering * 0.48f;" in p.read_text()
 assert "frontHub.yRot = frontYaw;" in p.read_text()
 print("PASS wheel orientation and hub pivots; disabled rolling animation; 0.7.1")
+
+# Keep the in-game version identical to the versioned JAR name.
+toml=Path("src/main/resources/META-INF/neoforge.mods.toml")
+meta=toml.read_text()
+assert meta.count('version="0.7.0"') == 1
+meta=meta.replace('version="0.7.0"','version="0.7.1"')
+toml.write_text(meta)
+print("PASS: NeoForge metadata version 0.7.1")
