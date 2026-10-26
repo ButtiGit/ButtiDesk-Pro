@@ -10,6 +10,7 @@ final readonly class DeskIdentity
         public int $workspaceId,
         public string $workspaceName,
         public string $role,
+        public bool $isDemo = true,
     ) {}
 
     public function canWrite(): bool

@@ -6,7 +6,15 @@
 
 Al 26/10/2026 la Fase 1 è implementata: Laravel 13 + PHP 8.4, Inertia 3/React 19/TypeScript/Tailwind 4, tema blu con font Instrument Sans locali, SQLite per l’avvio leggero e Compose PostgreSQL 16. Sono presenti quattro nuove tabelle (`desk_contacts`, `desk_tickets`, `desk_worklogs`, `desk_appointments`) con FK composite di workspace e global scope obbligatorio. Le due tabelle per posta/feed restano future.
 
-L’identità è fornita da un `IdentityProvider` dimostrativo, consentito esclusivamente in `local/testing` e con flag esplicito. Due workspace e due profili sintetici permettono di verificare isolamento e permessi. L’applicazione non copia utenti/password né contatta PitMetric. L’integrazione qui sotto resta una proposta per la Fase 4; non è già un contratto operativo. Sono anticipati creazione ticket, cambio stato e worklog, mentre rubrica e agenda sono in sola lettura.
+L’identità è fornita da un `IdentityProvider` dimostrativo, consentito esclusivamente in `local/testing` e con flag esplicito. Due workspace e due profili sintetici permettono di verificare isolamento e permessi. L’applicazione non copia utenti/password né contatta PitMetric. Il collegamento riservato è descritto nella sezione successiva; le proposte di integrazione email/migrazione restano future. Sono anticipati creazione ticket, cambio stato e worklog, mentre rubrica e agenda sono in sola lettura.
+
+## Collegamento riservato implementato
+
+Il bridge attuale usa un codice privato monouso con state/PKCE, scambio server firmato HMAC e contesto verificato a ogni richiesta. PitMetric espone `/apps/buttidesk` e `/apps/buttidesk/authorize`; le API private sono `POST /api/buttidesk/v1/{token,context,revoke}`. ButtiDesk usa `/auth/pitmetric/{start,callback,problem}` e logout locale. Questo non costituisce un provider OAuth/OIDC pubblico.
+
+Il gate sorgente accetta editor o `users.buttidesk_access_enabled`, indipendentemente dall’accesso database generale. Email verificata, membership attiva e ruoli sono verificati sul server. Token e chiavi non sono esposti al frontend; nessun dato del workspace è ricavato dai parametri del browser. Codici consumati atomicamente, nonce anti-replay, cache dei grant sul servizio sorgente e revoca della sessione sorgente al logout. I dettagli di attivazione sono nel README.
+
+La descrizione successiva conserva l’analisi originale e le proposte per le integrazioni ancora future. Hosting, URL pubblico e segreti devono essere configurati prima dell’attivazione; nessuna migrazione dei dati o integrazione email viene eseguita automaticamente.
 
 ## 1. Analisi del modulo esistente
 

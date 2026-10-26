@@ -1,6 +1,6 @@
 # ButtiDesk-Pro — Roadmap di ricostruzione
 
-**Stato al 26/10/2026:** Fase 1 implementata. Laravel 13, Inertia 3/React/TypeScript, tema blu, demo locale, Docker PostgreSQL e CI SQLite/PostgreSQL. Una parte del dominio e delle schermate è anticipata per poter provare la base; Fasi 2–3 ancora parziali. Nessun collegamento produttivo.
+**Stato al 26/10/2026:** Fase 1 implementata. Laravel 13, Inertia 3/React/TypeScript, tema blu, demo locale, Docker PostgreSQL e CI SQLite/PostgreSQL. Una parte del dominio e delle schermate è anticipata per poter provare la base; Fasi 2–3 ancora parziali. Bridge riservato implementato e testato; attivazione produttiva subordinata al deploy autonomo e alla configurazione dei due servizi.
 
 ## Consegna Fase 1
 
@@ -10,7 +10,7 @@
 - Test Pest per isolamento, ruoli, validazione, UTC, integrità e chiusura demo in produzione; Pint, Larastan e build.
 - Compose locale e pipeline senza deployment; istruzioni in [DEVELOPMENT.md](DEVELOPMENT.md).
 
-**Restano per la Fase 2:** CRUD completo e policy di contatti/agenda, modifica/archiviazione ticket, ulteriori vincoli e test transazionali di dominio. **Restano per la Fase 3:** test browser automatici in CI, rifinitura dei flussi completi e report/export previsti. Posta, feed, SSO e migrazione reale non sono implementati.
+**Restano per la Fase 2:** CRUD completo e policy di contatti/agenda, modifica/archiviazione ticket, ulteriori vincoli e test transazionali di dominio. **Restano per la Fase 3:** test browser automatici in CI, rifinitura dei flussi completi e report/export previsti. Posta, feed e migrazione reale non sono implementati. Il bridge di accesso riservato è ora disponibile con codici monouso/PKCE e firme server HMAC.
 
 ## Priorità
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\WorkspaceContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -10,6 +11,7 @@ final class DemoContextController extends Controller
 {
     public function __invoke(Request $request): RedirectResponse
     {
+        abort_unless(app(WorkspaceContext::class)->identity()->isDemo, 403);
         $data = $request->validate([
             'workspace_id' => ['sometimes', 'required', 'integer', Rule::in(array_keys(config('desk.workspaces')))],
             'profile' => ['sometimes', 'required', Rule::in(array_keys(config('desk.profiles')))],

@@ -16,6 +16,10 @@ final class ResolveDeskIdentity
     {
         $this->context->set($this->provider->resolve($request));
 
-        return $next($request);
+        $response = $next($request);
+        $response->headers->set('Cache-Control', 'no-store, private');
+        $response->headers->set('Referrer-Policy', 'no-referrer');
+
+        return $response;
     }
 }

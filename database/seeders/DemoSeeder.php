@@ -16,7 +16,7 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment(['local', 'testing']) || ! config('desk.demo_enabled')) {
+        if (! app()->environment(['local', 'testing']) || (! config('desk.demo_enabled') || config('desk.identity_provider') !== 'demo')) {
             throw new RuntimeException('Demo fixtures are allowed only in an explicitly enabled local/test environment.');
         }
         DB::transaction(function (): void {

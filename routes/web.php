@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DemoContextController;
 use App\Http\Controllers\DeskController;
+use App\Http\Controllers\PitMetricConnectionController;
 use App\Http\Controllers\TicketController;
 use App\Http\Middleware\ResolveDeskIdentity;
 use Illuminate\Support\Facades\Route;
@@ -21,3 +22,8 @@ Route::middleware(ResolveDeskIdentity::class)->group(function () {
     Route::get('/settings', fn () => Inertia::render('Settings'))->name('settings');
     Route::post('/demo/context', DemoContextController::class)->middleware('throttle:30,1')->name('demo.context');
 });
+
+Route::get('/auth/pitmetric/start', [PitMetricConnectionController::class, 'start'])->middleware('throttle:30,1')->name('pitmetric.start');
+Route::get('/auth/pitmetric/callback', [PitMetricConnectionController::class, 'callback'])->middleware('throttle:30,1')->name('pitmetric.callback');
+Route::post('/auth/pitmetric/logout', [PitMetricConnectionController::class, 'logout'])->middleware('throttle:30,1')->name('pitmetric.logout');
+Route::get('/auth/pitmetric/problem', [PitMetricConnectionController::class, 'problem'])->name('pitmetric.problem');

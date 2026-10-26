@@ -2686,3 +2686,76 @@ a.cell-secondary:hover {
         display: none;
     }
 }
+
+.product-switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid color-mix(in srgb, #e10600 25%, var(--border));
+    background: color-mix(in srgb, #e10600 5%, var(--surface));
+    border-radius: 9px;
+    padding: 11px;
+    margin-top: 23px;
+    transition:
+        background 150ms,
+        border-color 150ms;
+}
+.product-switch:hover {
+    border-color: #e10600;
+    background: color-mix(in srgb, #e10600 9%, var(--surface));
+}
+.product-mark {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    border-radius: 7px;
+    color: #fff;
+    background: #c8100a;
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+}
+.product-switch > span:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+}
+.product-switch strong {
+    display: block;
+    font-size: 12px;
+}
+.product-switch small {
+    display: block;
+    color: var(--secondary);
+    font-size: 9px;
+    margin-top: 3px;
+}
+.product-switch > svg {
+    color: var(--muted);
+}
+.product-switch + .workspace-switch {
+    margin-top: 16px;
+}
+.workspace-context {
+    flex: 1;
+    min-width: 0;
+}
+.workspace-context > span {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+}
+.workspace-context > strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 4px;
+    font-size: 12px;
+}
+.logout-button {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 6px;
+    background: transparent;
+}
