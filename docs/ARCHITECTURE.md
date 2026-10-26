@@ -2,6 +2,12 @@
 
 **Ultima analisi:** 26 ottobre 2026. Fonte: `ButtiGit/pitmetric@8ef8f780ec90bfb7c2751fd0901bd0e686041e20`, non accesso diretto al database di produzione.
 
+## Stato di implementazione della base autonoma
+
+Al 26/10/2026 la Fase 1 è implementata: Laravel 13 + PHP 8.4, Inertia 3/React 19/TypeScript/Tailwind 4, tema blu con font Instrument Sans locali, SQLite per l’avvio leggero e Compose PostgreSQL 16. Sono presenti quattro nuove tabelle (`desk_contacts`, `desk_tickets`, `desk_worklogs`, `desk_appointments`) con FK composite di workspace e global scope obbligatorio. Le due tabelle per posta/feed restano future.
+
+L’identità è fornita da un `IdentityProvider` dimostrativo, consentito esclusivamente in `local/testing` e con flag esplicito. Due workspace e due profili sintetici permettono di verificare isolamento e permessi. L’applicazione non copia utenti/password né contatta PitMetric. L’integrazione qui sotto resta una proposta per la Fase 4; non è già un contratto operativo. Sono anticipati creazione ticket, cambio stato e worklog, mentre rubrica e agenda sono in sola lettura.
+
 ## 1. Analisi del modulo esistente
 
 Il modulo è attualmente **parte dell'applicazione Laravel PitMetric**:

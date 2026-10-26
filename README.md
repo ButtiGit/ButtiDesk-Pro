@@ -1,88 +1,115 @@
 # ButtiDesk-Pro
 
-**Service desk e gestione operativa del lavoro**, progettato come applicazione autonoma ma integrabile con [PitMetric](https://github.com/ButtiGit/pitmetric).
+**Il lavoro, sotto controllo.** Service desk autonomo per gestire richieste, clienti, interventi e appuntamenti. Laravel 13 + React 19/TypeScript + Inertia 3, con identità blu e stile coerente con PitMetric.
 
-> **Stato al 26 ottobre 2026: progettazione.** Questa repository contiene per ora l'analisi funzionale, l'architettura proposta e la roadmap. **Non contiene ancora un'applicazione avviabile.** Il modulo da cui nascono i requisiti si trova attualmente nel codice di PitMetric: non è stato copiato, spostato o disattivato.
+> **Fase 1 implementata — 26 ottobre 2026.** Applicazione avviabile con dati sintetici, due workspace separati e profili demo. **Non è collegata a PitMetric** e non richiede servizi esterni. Non è una release destinata alla produzione: l’accesso demo è bloccato fuori dagli ambienti `local` e `testing`.
 
-## Perché esiste
+## Avvio rapido
 
-ButtiDesk-Pro aiuta un piccolo team o uno sviluppatore a gestire richieste, interventi, contatti, comunicazioni e appuntamenti senza disperdere le informazioni tra email, note e fogli di calcolo.
+### Con Docker (PHP 8.4, Node 22 e PostgreSQL 16 inclusi)
 
-PitMetric resta il prodotto per le **operazioni tecniche motorsport**; ButtiDesk-Pro si occupa del **service desk e dell'organizzazione del lavoro**. I due prodotti potranno aprirsi reciprocamente e condividere in modo controllato identità e contesto del team, mantenendo separati i dati applicativi.
+Clona questa repository e, dalla sua cartella:
 
-## Funzionalità di riferimento
+```bash
+cp .env.example .env
+# PowerShell: Copy-Item .env.example .env
+docker compose up --build
+```
 
-Queste funzionalità sono **derivate dal modulo oggi presente in PitMetric**, non promesse di un'app già pronta in questa repository.
+Apri **http://localhost:8000**. Il primo avvio installa le dipendenze dai lockfile, prepara un database proprio e compila il frontend. Gli avvii successivi conservano ticket e interventi. Nessun database di PitMetric è utilizzato; PostgreSQL non espone porte sull’host e l’app è pubblicata solo su `127.0.0.1`.
 
-| Area | Cosa permette di fare | Evoluzione prevista |
-| --- | --- | --- |
-| Dashboard | Vedere ticket attivi/urgenti, contatti, ore registrate e prossimi appuntamenti | Indicatori, filtri e azioni contestuali |
-| Ticket | Creare e modificare richieste con categoria, stato, priorità, scadenza, cliente e fornitore | Assegnatari, commenti, allegati, cronologia e ricerca avanzata |
-| Interventi e report | Registrare attività, data, descrizione e durata; stampare il rapportino del ticket e il riepilogo per periodo | Esportazione PDF/CSV e report professionali |
-| Rubrica | Gestire clienti, fornitori e contatti misti, con azienda, email, telefono, P. IVA e note | Relazioni e duplicati controllati |
-| Calendario | Gestire appuntamenti collegabili a ticket o contatti, con download `.ics` e feed privato revocabile | Promemoria e successive integrazioni, solo dopo consenso/permessi |
-| Posta | Leggere, inviare e rispondere tramite la casella Studio di PitMetric e associare messaggi ai ticket | Conversazioni per ticket, webhook e tracciamento idempotente |
-| Team e sicurezza | Limitare visibilità e modifiche al workspace attivo e ai permessi dell'utente | Integrazione server-to-server con identità PitMetric e audit specifico |
+Per cambiare porta: `DESK_PORT=8080 docker compose up` (in PowerShell: `$env:DESK_PORT=8080; docker compose up`). Il container usa il server di sviluppo PHP e asset compilati, **non** è un’immagine di deploy produttivo.
 
-### Modello operativo dei ticket
+### Senza Docker (SQLite, avvio leggero)
 
-- Stati osservati: `open`, `progress`, `waiting`, `done`, `cancelled`.
-- Priorità osservate: `low`, `normal`, `high`, `urgent`.
-- Un ticket può riferirsi a un cliente e/o a un fornitore, avere più interventi, appuntamenti e messaggi collegati.
-- Le durate degli interventi sono espresse in **minuti interi**; i timestamp persistiti sono in **UTC**, presentati all'utente nel fuso di configurazione (predefinito `Europe/Rome`).
+Requisiti: **PHP 8.4+**, Composer 2, **Node 22.12+** (o 24) e npm; estensioni PHP Laravel più `pdo_sqlite`, `intl` e `mbstring`. Per PostgreSQL serve anche `pdo_pgsql`. Non usare una vecchia versione PHP di XAMPP.
 
-## Rapporto con PitMetric
+```bash
+composer run setup
+composer run dev
+```
 
-L'integrazione **non è ancora implementata** nel nuovo repository.
+Apri **http://localhost:8000**. `setup` crea `.env` solo se manca, genera la chiave solo se assente, applica migrazioni additive e inserisce fixture senza cancellare le righe esistenti. `dev` avvia Laravel e Vite con aggiornamento automatico dell’interfaccia.
 
-| Aspetto | Proprietario previsto | Regola |
-| --- | --- | --- |
-| Login, verifica email, utenti | PitMetric | Niente copie di password o condivisioni improvvisate di cookie |
-| Workspace, appartenenze, ruoli | PitMetric | La membership attiva determina l'accesso, verificato lato server |
-| Ticket, contatti, interventi, agenda, log | ButtiDesk-Pro | Dati isolati per `workspace_id`, propri del service desk |
-| Casella Studio e credenziali Resend | Servizio autorizzato da PitMetric | Accesso per competenza, non esposizione delle credenziali nel browser |
-| Navigazione tra prodotti | Entrambi | Link contestuali e futuro accesso federato, con rollout graduale |
+Se `.env` esiste già, prima controlla che punti **esclusivamente a un database demo dedicato**. Non inserire credenziali, URL, cookie, chiavi o dati reali di PitMetric.
 
-**Vincolo principale:** nessun utente deve poter leggere o collegare entità di un altro workspace, neppure modificando un ID nella URL o in una richiesta API.
+## Cosa puoi già provare
 
-## Tecnologie: continuità e apprendimento
+| Area | Disponibile nella Fase 1 |
+| --- | --- |
+| Panoramica | Ticket attivi e urgenti, ore del mese, contatti, priorità, impegni e attività settimanale; tutti calcolati dal database |
+| Ticket | Elenco paginato, ricerca, filtri per stato/priorità, creazione, dettaglio e cambio stato |
+| Interventi | Registrazione sul ticket in minuti interi e cronologia; identità e workspace stabiliti dal server |
+| Rapportini | Stampa del ticket completo e registro per periodo; il riepilogo stampa la pagina corrente, non un export completo |
+| Rubrica | Clienti/fornitori sintetici, ricerca e filtro; sola lettura in questa fase |
+| Calendario | Vista settimanale navigabile con appuntamenti sintetici e link ai ticket; sola lettura |
+| Ambiente | Due workspace demo, profilo amministratore/osservatore, tema blu chiaro/scuro persistente e navigazione mobile |
 
-Il progetto mantiene **Laravel e il modello dati di PitMetric** ma, essendo un'app autonoma, propone un frontend **React + TypeScript con Inertia**: permette di mettere in pratica competenze full stack richieste senza modificare il frontend Livewire di PitMetric.
+La posta è indicata come futura: non esiste alcun invio reale, inbox connessa, feed iCal o sincronizzazione esterna. Modifica completa/archiviazione ticket, CRUD rubrica/agenda, export PDF/CSV, allegati, SSO e integrazione PitMetric fanno parte delle fasi successive.
 
-| Componente | Scelta iniziale | Motivazione |
-| --- | --- | --- |
-| Backend | PHP 8.4 + Laravel 13 | Convenzioni, regole di dominio e test coerenti con PitMetric |
-| UI applicativa | React + TypeScript + Inertia.js + Tailwind CSS 4 | Pratica di React/TS, mantenendo routing e validazione in Laravel e una sola applicazione da distribuire |
-| Design | Stessi principi visivi, tipografia, layout e stati d'interfaccia di PitMetric | Coerenza di esperienza; i componenti Flux/Livewire non sono riusabili direttamente in React |
-| Database | PostgreSQL proposto per il servizio autonomo, Eloquent e migrazioni Laravel | SQL, vincoli, indici e portabilità; **la produzione PitMetric non è stata identificata dal solo repository** |
-| Test | Pest 4; successivamente Playwright per i flussi critici | Sicurezza, regressioni e usabilità |
-| Distribuzione | Docker/Coolify e GitHub Actions in una fase successiva | Deploy riproducibili e verificati |
+### Dati e identità demo
 
-**Perché React qui e non in PitMetric?** Il progetto indipendente è anche un'occasione concreta per usare TypeScript, React, SQL avanzato, Docker e CI/CD. React resta confinato a ButtiDesk-Pro: PitMetric continua con Laravel + Livewire 4 + Flux 2 e non ne riceve il bundle. Non si aggiungono Next.js, Node.js come secondo backend, Vue, Spring o .NET senza un caso d'uso reale.
+- Workspace: **Butti Studio** (`101`) e **Officina Demo** (`202`), ognuno con 6 contatti, 12 ticket, 13 interventi e 3 appuntamenti all’inizializzazione.
+- Profili fittizi: **Alex Demo**, amministratore, e **Jamie Demo**, osservatore; nessun login o password copiati da altri sistemi.
+- Cambia workspace dal menu laterale; cambia profilo in **Impostazioni**. L’osservatore può leggere ma non creare ticket, cambiare stati o registrare lavoro.
+- Le scritture persistono nel database locale; ricaricare il browser non le annulla. `php artisan desk:prepare` è ripetibile e non azzera i dati. Le date delle fixture sono relative alla prima inizializzazione; non vengono spostate automaticamente a ogni avvio.
+- Il seeder riconosce le fixture da titolo/nome, campi non modificabili dall’attuale demo; prima di introdurne la modifica nella Fase 2 serviranno chiavi fixture stabili.
 
-## Documenti di progetto
+## Struttura e scelte tecniche
 
-- [Architettura e contratto dati](docs/ARCHITECTURE.md): analisi del modulo originale, sei entità, permessi, confini di integrazione, sicurezza e migrazione.
-- [Roadmap e criteri di completamento](docs/ROADMAP.md): ordine di realizzazione, test richiesti, vincoli per il collegamento a PitMetric e decisioni ancora aperte.
+```text
+app/Contracts/IdentityProvider.php  Contratto sostituibile per l’identità futura
+app/Identity/                     Identità demo e ruoli compatibili con PitMetric
+app/Support/WorkspaceContext.php   Contesto obbligatorio, scoped alla richiesta/job
+app/Models/                       Contatti, ticket, interventi, appuntamenti
+app/Services/TicketService.php     Scritture transazionali e audit senza contenuti sensibili
+app/Http/                         Controller, validazione e middleware Inertia/identità
+resources/js/pages/               Pagine React caricate su richiesta
+resources/js/components/          Componenti tipizzati e tabella ticket
+resources/css/app.css             Token chiaro/scuro, blu, responsive e stampa
+config/desk.php                    Configurazione solo demo e fuso Europe/Rome
+compose.yaml                      Ambiente locale PostgreSQL isolato
+.github/workflows/checks.yml       Controlli su SQLite e PostgreSQL
+```
 
-### Origine dei requisiti (fotografia del 26/10/2026)
+Un solo backend Laravel e un solo deploy futuro: React non introduce un secondo server applicativo. Vite divide il codice per pagina, Lucide è importato per singola icona, il grafico settimanale usa CSS e i font Instrument Sans sono locali. Non ci sono CDN o runtime chiamati per disegnare la UI.
 
-Analisi basata sul branch `main` di [ButtiGit/pitmetric](https://github.com/ButtiGit/pitmetric) al commit [`8ef8f78`](https://github.com/ButtiGit/pitmetric/commit/8ef8f780ec90bfb7c2751fd0901bd0e686041e20):
+Lo stile riprende i principi visivi di PitMetric — superfici `#0b0d10`/`#111419`, bordi `#272d36`, tipografia Instrument Sans, menu laterale e pannelli compatti — con accenti blu `#3478f6` in tema scuro e `#2563eb` in tema chiaro. I componenti Flux/Livewire non sono copiati.
 
-- [Modulo PHP](https://github.com/ButtiGit/pitmetric/tree/main/app/Modules/ButtiDeskPro)
-- [Rotte](https://github.com/ButtiGit/pitmetric/blob/main/routes/buttidesk.php)
-- [Migrazione delle sei tabelle](https://github.com/ButtiGit/pitmetric/blob/main/database/migrations/2026_10_14_160000_create_buttidesk_tables.php)
-- [Test funzionali](https://github.com/ButtiGit/pitmetric/blob/main/tests/Feature/ButtiDeskProTest.php)
-- [Note per il rilascio protetto](https://github.com/ButtiGit/pitmetric/blob/main/docs/buttidesk-coolify.md)
+### Isolamento e contratto dati
 
-La fotografia descrive il **codice versionato**, non certifica che tutte le funzioni siano abilitate o collaudate sull'istanza di produzione.
+Le quattro nuove tabelle `desk_*` mantengono i nomi di dominio e gli stati originali:
 
-## Regole di sviluppo
+- Stati: `open`, `progress`, `waiting`, `done`, `cancelled`; priorità: `low`, `normal`, `high`, `urgent`.
+- Ogni query Eloquent richiede un `WorkspaceContext`; senza contesto fallisce, anche fuori dalle richieste web. Tenant e autore delle scritture non sono accettati dal browser.
+- Le FK composite `(workspace_id, id)` impediscono riferimenti fra workspace anche nel database; la validazione controlla anche cliente/fornitore compatibili.
+- Durate in minuti, timestamp in UTC e presentazione in `Europe/Rome`. Chiudere un ticket valorizza `closed_at`, riaprirlo lo azzera.
+- Gli ID di workspace e attore sono riferimenti esterni simulati: non esiste una copia della tabella utenti PitMetric. Per job futuri va risolto esplicitamente un contesto autorizzato; non usare query senza scope per aggirarlo.
+- CSRF Laravel, limiti sulle creazioni, query paginate, transazioni e audit strutturato. Il cambio di profilo/workspace è una funzione **solo demo**, non un sistema di autorizzazione per la produzione.
 
-1. Non copiare codice, credenziali, migrazioni già eseguite o dati reali di PitMetric in questa repository.
-2. Prima sviluppare e testare ButtiDesk-Pro separatamente; integrare PitMetric solo quando interfacce, permessi e rollback sono verificati.
-3. Nessuna migrazione distruttiva, `migrate:fresh`, `db:wipe`, `key:generate` o sostituzione di schema sul database produttivo.
-4. Un solo commit per ogni rilascio coordinato che modifica PitMetric/Coolify, preceduto da test e possibilità di disattivare il collegamento.
-5. Trattare README, architettura e roadmap come specifiche **proposte**, da adattare con i test di integrazione e le decisioni aperte.
+## Controlli
 
-**Prossimo passo:** Fase 1 della [roadmap](docs/ROADMAP.md): scaffolding Laravel autonomo, modelli e test di isolamento, senza toccare PitMetric.
+```bash
+composer lint        # Pint
+composer analyse     # Larastan, livello 5
+composer test        # Pest: dominio, tenant, ruoli, validazione, demo chiusa in produzione
+npm run check        # TypeScript strict + Prettier + build Vite
+```
+
+In Docker anteponi `docker compose exec app` per lint/analisi/build; per i test usa `docker compose exec -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -e DB_URL= app composer test`. I test usano SQLite in memoria per default. La CI ripete l’intera suite anche con PostgreSQL 16 e non pubblica né distribuisce nulla.
+
+Per provare i test su un PostgreSQL **dedicato ed effimero**, consulta [sviluppo e verifiche](docs/DEVELOPMENT.md). La suite ricrea le tabelle del database di test: non puntarla a database condivisi o reali.
+
+## Roadmap e relazione con PitMetric
+
+- [Roadmap aggiornata](docs/ROADMAP.md): Fase 1 e passi ancora necessari.
+- [Architettura e contratto di riferimento](docs/ARCHITECTURE.md): origine dei requisiti, dati, permessi e integrazione proposta.
+- [Avvio, configurazione e verifiche](docs/DEVELOPMENT.md): comandi e limiti della demo.
+
+La Fase 1 anticipa una parte delle fondamenta del dominio per rendere la base realmente provabile. Le Fasi 2–3 **non sono completate**: rubrica e agenda sono ancora in lettura, mancano i flussi completi e il contratto identità reale. Posta e feed non hanno ancora modelli o tabelle applicative.
+
+PitMetric rimane separato e invariato. Nessuna rotta, tabella, migrazione, configurazione Coolify o dato produttivo viene modificato da questa applicazione. Prima di qualunque collegamento serviranno specifiche e test di identità, membership, revoche e rollback. Non condividere `APP_KEY`, cookie di sessione o accesso diretto ai database.
+
+### Origine
+
+Concetti derivati dall’analisi read-only di `ButtiGit/pitmetric@8ef8f780ec90bfb7c2751fd0901bd0e686041e20`, documentata in [ARCHITECTURE.md](docs/ARCHITECTURE.md). Scaffold ricostruito sulla base dello skeleton ufficiale Laravel 13; implementazione autonoma, senza trasferimento del vecchio modulo.
