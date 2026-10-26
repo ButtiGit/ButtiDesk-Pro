@@ -22,6 +22,8 @@ docker compose up --build
 
 L’applicazione risponde su http://localhost:8000 dopo la prima build. Il volume `postgres_data` conserva i dati, mentre `vendor` e `node_modules` hanno volumi dedicati al container. `docker compose down` ferma i servizi senza cancellare questi volumi. Il database non è pubblicato sull’host.
 
+Il server nel container usa `--no-reload`: preserva le variabili PostgreSQL fornite da Compose, evitando che il processo HTTP rilegga i default SQLite della `.env`.
+
 Il file Compose configura solo un ambiente locale: server PHP di sviluppo, `APP_DEBUG` dalla `.env`, credenziali di esempio e nessun deploy. Non è pronto per esposizione pubblica.
 
 ```bash
