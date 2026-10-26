@@ -93,7 +93,7 @@ it('does not fall back to demo identities when the source connection fails', fun
 });
 
 it('forces a full navigation for expired Inertia sessions rather than submitting an unauthenticated write', function () {
-    $this->withSession(['pitmetric.expires_at' => time() - 1])->get('/', ['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(Request::create('/'))])->assertStatus(409)->assertHeader('X-Inertia-Location', route('pitmetric.start'));
+    $this->withSession(['pitmetric.expires_at' => time() - 1])->get('/', ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(Request::create('/'))])->assertStatus(409)->assertHeader('X-Inertia-Location', route('pitmetric.start'));
     $this->post('/tickets', ['title' => 'Blocked'])->assertRedirect(route('pitmetric.problem', ['reason' => 'expired']));
     $this->assertDatabaseCount('desk_tickets', 0);
     Http::assertNothingSent();
