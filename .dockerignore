@@ -4,3 +4,8 @@ vendor
 node_modules
 public/build
 storage/logs
+.env*
+/storage
+/database/*.sqlite*
+/tests
+/docs

@@ -75,3 +75,29 @@ jobs:
       - name: Stop local containers
         if: always()
         run: docker compose down
+
+  production-image:
+    name: Production image startup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t buttidesk-production .
+      - name: Start isolated production image
+        run: >-
+          docker run -d --name buttidesk-production -p 127.0.0.1:8080:8080
+          -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          -e APP_URL=http://127.0.0.1:8080
+          -e PITMETRIC_URL=https://pitmetric.example.test
+          -e BUTTIDESK_BRIDGE_SECRET=ci-fixture-only-012345678901234567890123456789
+          buttidesk-production
+      - name: Verify production server and authentication boundary
+        run: |
+          curl --fail --retry 30 --retry-delay 2 --retry-all-errors --max-time 5 http://127.0.0.1:8080/up --output /dev/null
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/)" = "302"
+      - name: Production image logs on failure
+        if: failure()
+        run: docker logs buttidesk-production
+      - name: Stop production image
+        if: always()
+        run: docker rm -f buttidesk-production

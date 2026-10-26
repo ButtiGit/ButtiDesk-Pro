@@ -8,6 +8,8 @@ import {
     ClipboardList,
     FlaskConical,
     LayoutDashboard,
+    LogOut,
+    ShieldCheck,
     Mail,
     Menu,
     Moon,
@@ -27,6 +29,7 @@ import {
     type ReactNode,
 } from 'react';
 import { initials, configureTimezone } from '../lib/format';
+import ProductSwitch from '../components/ProductSwitch';
 import type { SharedProps } from '../lib/types';
 
 export default function DeskLayout({ children }: { children: ReactNode }) {
@@ -99,29 +102,39 @@ export default function DeskLayout({ children }: { children: ReactNode }) {
                     ButtiDesk<span className="brand-pro">PRO</span>
                 </span>
             </Link>
+            {desk.links.pitmetric && (
+                <ProductSwitch href={desk.links.pitmetric} />
+            )}
             <div className="workspace-switch">
                 <span className="workspace-avatar">
                     {initials(desk.workspace.name)}
                 </span>
-                <label>
-                    <span>Workspace demo</span>
-                    <select
-                        aria-label="Workspace demo"
-                        value={desk.workspace.id}
-                        onChange={(event) =>
-                            router.post('/demo/context', {
-                                workspace_id: Number(event.target.value),
-                            })
-                        }
-                    >
-                        {desk.workspaces.map((workspace) => (
-                            <option key={workspace.id} value={workspace.id}>
-                                {workspace.name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <ChevronsUpDown size={14} />
+                {desk.demo ? (
+                    <label>
+                        <span>Workspace demo</span>
+                        <select
+                            aria-label="Workspace demo"
+                            value={desk.workspace.id}
+                            onChange={(event) =>
+                                router.post('/demo/context', {
+                                    workspace_id: Number(event.target.value),
+                                })
+                            }
+                        >
+                            {desk.workspaces.map((workspace) => (
+                                <option key={workspace.id} value={workspace.id}>
+                                    {workspace.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                ) : (
+                    <div className="workspace-context">
+                        <span>Workspace PitMetric</span>
+                        <strong>{desk.workspace.name}</strong>
+                    </div>
+                )}
+                {desk.demo && <ChevronsUpDown size={14} />}
             </div>
             <div className="nav-label">OPERATIVITÀ</div>
             <nav aria-label="Navigazione principale">
@@ -152,19 +165,47 @@ export default function DeskLayout({ children }: { children: ReactNode }) {
             <div className="sidebar-bottom">
                 <div className="demo-note">
                     <div>
-                        <FlaskConical size={16} />
-                        <strong>Spazio di prova</strong>
+                        {desk.demo ? (
+                            <FlaskConical size={16} />
+                        ) : (
+                            <ShieldCheck size={16} />
+                        )}
+                        <strong>
+                            {desk.demo ? 'Spazio di prova' : 'Il tuo workspace'}
+                        </strong>
                         <span className="live-dot" />
                     </div>
                     <p>
-                        Esplora liberamente.
-                        <br />
-                        Qui tutti i dati sono di esempio.
+                        {desk.demo ? (
+                            <>
+                                Esplora liberamente.
+                                <br />
+                                Qui tutti i dati sono di esempio.
+                            </>
+                        ) : (
+                            <>
+                                Accesso autorizzato da PitMetric.
+                                <br />
+                                Attività visibili solo al tuo team.
+                            </>
+                        )}
                     </p>
                     <Link href="/settings">
-                        Scopri l’ambiente <ArrowUpRight size={14} />
+                        {desk.demo
+                            ? 'Scopri l’ambiente'
+                            : 'Account e connessione'}{' '}
+                        <ArrowUpRight size={14} />
                     </Link>
                 </div>
+                {!desk.demo && (
+                    <button
+                        className="nav-item logout-button"
+                        onClick={() => router.post('/auth/pitmetric/logout')}
+                    >
+                        <LogOut size={17} />
+                        <span>Esci da ButtiDesk</span>
+                    </button>
+                )}
                 <Link
                     className={`nav-item ${url.startsWith('/settings') ? 'active' : ''}`}
                     href="/settings"
@@ -178,8 +219,12 @@ export default function DeskLayout({ children }: { children: ReactNode }) {
                         <strong>{desk.user.name}</strong>
                         <span>
                             {desk.canWrite
-                                ? 'Amministratore demo'
-                                : 'Sola lettura demo'}
+                                ? desk.demo
+                                    ? 'Amministratore demo'
+                                    : 'Accesso operativo'
+                                : desk.demo
+                                  ? 'Sola lettura demo'
+                                  : 'Sola lettura'}
                         </span>
                     </div>
                     <ChevronDown size={14} />
@@ -241,7 +286,7 @@ export default function DeskLayout({ children }: { children: ReactNode }) {
                         </form>
                         <span className="demo-badge">
                             <span />
-                            Demo locale
+                            {desk.demo ? 'Demo locale' : 'PitMetric connesso'}
                         </span>
                         <button
                             className="icon-button theme-toggle"
@@ -264,9 +309,21 @@ export default function DeskLayout({ children }: { children: ReactNode }) {
                     <div className="content">
                         {!desk.canWrite && (
                             <div className="info-banner">
-                                Stai esplorando come osservatore. Puoi cambiare
-                                profilo nelle{' '}
-                                <Link href="/settings">impostazioni demo</Link>.
+                                {desk.demo ? (
+                                    <>
+                                        Stai esplorando come osservatore. Puoi
+                                        cambiare profilo nelle{' '}
+                                        <Link href="/settings">
+                                            impostazioni demo
+                                        </Link>
+                                        .
+                                    </>
+                                ) : (
+                                    <>
+                                        Il tuo ruolo in questo workspace
+                                        consente la sola lettura.
+                                    </>
+                                )}
                             </div>
                         )}
                         {(errors.workspace_id || errors.profile) && (
@@ -282,7 +339,10 @@ export default function DeskLayout({ children }: { children: ReactNode }) {
                             Il lavoro, sotto controllo.
                         </span>
                         <span>
-                            <span className="live-dot" /> Ambiente indipendente
+                            <span className="live-dot" />{' '}
+                            {desk.demo
+                                ? 'Ambiente indipendente'
+                                : 'Accesso tramite PitMetric'}
                         </span>
                     </footer>
                 </main>

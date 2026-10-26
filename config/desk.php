@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'identity_provider' => env('DESK_IDENTITY_PROVIDER', 'demo'),
     'demo_enabled' => (bool) env('DESK_DEMO_ENABLED', false),
     'timezone' => env('DESK_TIMEZONE', 'Europe/Rome'),
     // Synthetic identities only. No passwords, shared cookies or live endpoints.

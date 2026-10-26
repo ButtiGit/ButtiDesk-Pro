@@ -48,13 +48,17 @@ docker compose exec -e APP_ENV=testing -e DB_DATABASE=buttidesk_test app compose
 
 Un controllo in `Tests/TestCase.php`, eseguito prima di `RefreshDatabase`, rifiuta connessioni diverse da SQLite `:memory:`/`*_test.sqlite` o PostgreSQL `*_test`. `RefreshDatabase` e le migrazioni di test ricreano lo schema: usare **sempre** un database dedicato e sacrificabile. Non usare credenziali reali.
 
-## Identità simulata
+## Identità e collegamento
 
-`IdentityProvider` è il punto di sostituzione futuro. Oggi `DemoIdentityProvider` accetta esclusivamente `APP_ENV=local|testing` e `DESK_DEMO_ENABLED=true`. Il workspace e il profilo provengono da valori server-side predefiniti, memorizzati nella sessione e validati a ogni richiesta.
+`DESK_IDENTITY_PROVIDER=demo` conserva il comportamento locale: richiede `APP_ENV=local|testing` e `DESK_DEMO_ENABLED=true`. In modalità `pitmetric`, la demo deve essere disattivata e servono l’URL sorgente e la chiave dedicata. Vedi il README per la configurazione di produzione.
 
-L’app non offre registrazione, recupero password o SSO e non concede accesso in produzione, anche se il flag demo è erroneamente attivo. `/up` rimane disponibile senza identità e serve solo come controllo del runtime Laravel, non come verifica del database o del dominio.
+Il codice monouso è vincolato al browser tramite state e PKCE. Token e segreto restano server-side; ogni richiesta risolve nuovamente il contesto da PitMetric. Il workspace non proviene da ID inviati dal browser. La modifica dei profili e il seeder sono vietati quando il provider è PitMetric.
 
-Per code/CLI futuri occorre risolvere una `DeskIdentity` autorizzata e impostare esplicitamente `WorkspaceContext`. La registrazione `scoped` evita di riutilizzare il contesto tra richieste/job nei runtime persistenti Laravel. Nessuna tabella locale utenti pretende di sostituire PitMetric.
+Non esistono registrazione, recupero password, condivisione di password o cookie. Il bridge è privato e non dichiara PitMetric un provider OAuth/OIDC generale. Le chiamate hanno timeout di connessione di un secondo e totale di tre secondi, nessun retry automatico su codici monouso e nessun redirect server-to-server seguito.
+
+`/up` resta un controllo del runtime senza identità, non del database o del dominio. Per code/CLI futuri va impostato esplicitamente un contesto autorizzato; i global scope falliscono in sua assenza.
+
+Il `Dockerfile` nella radice produce un’immagine Nginx/PHP-FPM per il servizio separato, porta 8080. Non esegue migrazioni o genera chiavi all’avvio. Le credenziali vengono iniettate a runtime e il document root è esclusivamente `public/`. `compose.yaml` e `docker/php/Dockerfile` restano dedicati alla demo locale.
 
 ## Sicurezza del database di test
 
@@ -81,5 +85,5 @@ La CI di questa fase contiene test PHP su SQLite/PostgreSQL, analisi statica, fo
 - Quattro tabelle di dominio e flussi ticket essenziali; gestione contatti/agenda, modifica ticket completa e retention ancora da completare.
 - Lo schema non certifica ancora tutti i vincoli della Fase 2 (es. regole per modifiche/cancellazioni future e appuntamenti scrivibili).
 - Fixture idempotenti riconosciute da nome/titolo, generate rispetto alla prima inizializzazione. Prima di rendere quei campi modificabili, usare identificatori fixture stabili.
-- Nessuna posta, feed, credenziale, chiamata al sito PitMetric o dipendenza da un backend Node. SSR Inertia esplicitamente disabilitato.
-- Nessun ruolo della demo rappresenta una membership reale. L’adapter autentico dovrà verificare email, abilitazioni, membership attiva e revoche.
+- Nessuna posta o feed e nessun backend Node. La demo non chiama PitMetric; il provider live usa esclusivamente il bridge privato. SSR Inertia esplicitamente disabilitato.
+- Nessun ruolo della demo rappresenta una membership reale. Il provider PitMetric verifica email, abilitazioni, membership attiva e revoche a ogni richiesta.

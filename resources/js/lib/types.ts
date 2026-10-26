@@ -60,6 +60,7 @@ export interface SharedProps {
         workspaces: { id: number; name: string }[];
         canWrite: boolean;
         demo: boolean;
+        links: { pitmetric: string | null };
         timezone: string;
     };
     flash: { success: string | null };

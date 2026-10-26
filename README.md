@@ -2,7 +2,7 @@
 
 **Il lavoro, sotto controllo.** Service desk autonomo per gestire richieste, clienti, interventi e appuntamenti. Laravel 13 + React 19/TypeScript + Inertia 3, con identità blu e stile coerente con PitMetric.
 
-> **Fase 1 implementata — 26 ottobre 2026.** Applicazione avviabile con dati sintetici, due workspace separati e profili demo. **Non è collegata a PitMetric** e non richiede servizi esterni. Non è una release destinata alla produzione: l’accesso demo è bloccato fuori dagli ambienti `local` e `testing`.
+> **Fase 1 + collegamento PitMetric riservato — 26 ottobre 2026.** Due modalità: demo locale con dati sintetici oppure identità verificata da PitMetric. Il bridge è implementato e testato; l’attivazione effettiva richiede il deploy separato, un URL HTTPS, un database proprio e le variabili runtime descritte sotto. Non importa dati o credenziali da PitMetric.
 
 ## Avvio rapido
 
@@ -33,6 +33,51 @@ Apri **http://localhost:8000**. `setup` crea `.env` solo se manca, genera la chi
 
 Se `.env` esiste già, prima controlla che punti **esclusivamente a un database demo dedicato**. Non inserire credenziali, URL, cookie, chiavi o dati reali di PitMetric.
 
+## Collegamento a PitMetric e produzione
+
+La sidebar delle due applicazioni permette il passaggio con un click. PitMetric mostra ButtiDesk solo agli editor o agli utenti abilitati esplicitamente in **Studio → Utenti → ButtiDesk-Pro**. L’accesso al database PitMetric e l’abilitazione ButtiDesk sono indipendenti. La nuova app applica anche email verificata, membership attiva e ruolo del workspace.
+
+L’accesso usa un bridge privato con state/PKCE e codici monouso; le chiamate server sono firmate HMAC, con timestamp e nonce. Nessuna password, chiave applicativa o session cookie è condivisa. Le autorizzazioni vengono ricontrollate a ogni richiesta ButtiDesk, senza cache di permessi; la sidebar PitMetric non chiama l’altra app. Assets e pagine React restano esclusivamente in ButtiDesk.
+
+### Risorsa Coolify autonoma
+
+Usa il **Dockerfile nella radice**, porta **8080**, un hostname dedicato con HTTPS e PostgreSQL dedicato inizialmente vuoto. L’immagine usa Nginx + PHP-FPM, asset già compilati e dipendenze PHP senza pacchetti di sviluppo. La CI ne verifica build, avvio e frontiera di autenticazione. `compose.yaml` rimane solo per lo sviluppo locale.
+
+Variabili runtime ButtiDesk:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://<hostname-ButtiDesk>
+APP_KEY=<chiave-propria-della-nuova-app>
+DESK_IDENTITY_PROVIDER=pitmetric
+DESK_DEMO_ENABLED=false
+PITMETRIC_URL=https://pitmetric.it
+BUTTIDESK_BRIDGE_SECRET=<chiave-casuale-dedicata-condivisa-dai-due-servizi>
+DB_CONNECTION=pgsql
+DB_HOST=<host-database-ButtiDesk>
+DB_PORT=5432
+DB_DATABASE=<database-ButtiDesk>
+DB_USERNAME=<utente-ButtiDesk>
+DB_PASSWORD=<password-ButtiDesk>
+```
+
+Nessun segreto reale è incluso. Genera una chiave dedicata con `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` e imposta lo stesso valore in entrambi i servizi. Usa `APP_KEY` e cookie separati, con `SESSION_DOMAIN` non impostato. Non rigenerare la chiave di PitMetric.
+
+Dopo il deploy nuovo, esegui **solo** `php artisan migrate --force --no-interaction`. Non eseguire seed demo o `composer setup` in produzione. Nell’app PitMetric configura:
+
+```dotenv
+BUTTIDESK_BRIDGE_ENABLED=true
+BUTTIDESK_PRO_URL=https://<hostname-ButtiDesk>
+BUTTIDESK_BRIDGE_SECRET=<stesso-valore-dedicato>
+```
+
+Il flag storico `BUTTIDESK_ENABLED` in PitMetric riguarda il vecchio modulo e può rimanere `false`. La migrazione PitMetric aggiunge soltanto `users.buttidesk_access_enabled`, disattivo per default. Distribuisci e migra prima i servizi con bridge spento, verifica il nuovo hostname e abilita il flag alla fine. Configurazioni mancanti o non valide chiudono il collegamento senza influenzare il sito principale.
+
+Per cambiare workspace, selezionalo in PitMetric e riapri ButtiDesk. Il ritorno dalla sidebar apre PitMetric; i link fra prodotti eseguono una navigazione normale, mentre la navigazione interna resta Inertia. Il logout PitMetric revoca i collegamenti della stessa sessione; “Esci da ButtiDesk” chiude solo la sessione locale.
+
+Il bridge usa cache Laravel e lock per grant e nonce; PitMetric deve avere una cache condivisa fra le eventuali repliche. Grant fino a due ore, codice monouso di 60 secondi, richieste firmate valide per 30 secondi. Se il servizio identità non risponde, ButtiDesk non autorizza letture o scritture usando vecchi permessi.
+
 ## Cosa puoi già provare
 
 | Area | Disponibile nella Fase 1 |
@@ -45,7 +90,7 @@ Se `.env` esiste già, prima controlla che punti **esclusivamente a un database 
 | Calendario | Vista settimanale navigabile con appuntamenti sintetici e link ai ticket; sola lettura |
 | Ambiente | Due workspace demo, profilo amministratore/osservatore, tema blu chiaro/scuro persistente e navigazione mobile |
 
-La posta è indicata come futura: non esiste alcun invio reale, inbox connessa, feed iCal o sincronizzazione esterna. Modifica completa/archiviazione ticket, CRUD rubrica/agenda, export PDF/CSV, allegati, SSO e integrazione PitMetric fanno parte delle fasi successive.
+La posta è indicata come futura: non esiste alcun invio reale, inbox connessa, feed iCal o sincronizzazione esterna. Modifica completa/archiviazione ticket, CRUD rubrica/agenda, export PDF/CSV, allegati, migrazione dei dati storici e ulteriori integrazioni fanno parte delle fasi successive.
 
 ### Dati e identità demo
 
@@ -108,7 +153,7 @@ Per provare i test su un PostgreSQL **dedicato ed effimero**, consulta [sviluppo
 
 La Fase 1 anticipa una parte delle fondamenta del dominio per rendere la base realmente provabile. Le Fasi 2–3 **non sono completate**: rubrica e agenda sono ancora in lettura, mancano i flussi completi e il contratto identità reale. Posta e feed non hanno ancora modelli o tabelle applicative.
 
-PitMetric rimane separato e invariato. Nessuna rotta, tabella, migrazione, configurazione Coolify o dato produttivo viene modificato da questa applicazione. Prima di qualunque collegamento serviranno specifiche e test di identità, membership, revoche e rollback. Non condividere `APP_KEY`, cookie di sessione o accesso diretto ai database.
+PitMetric rimane un servizio separato. Il suo cambiamento coordinato aggiunge il flag utenti, i link e gli endpoint del bridge; i dati di dominio restano in ButtiDesk. Il modulo storico non viene spostato o cancellato e non viene effettuato alcun import automatico. Non condividere `APP_KEY`, cookie di sessione o accesso diretto ai database.
 
 ### Origine
 

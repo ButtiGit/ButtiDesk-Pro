@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\PitMetricBridge;
 use App\Support\WorkspaceContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -20,9 +21,10 @@ class HandleInertiaRequests extends Middleware
                 return [
                     'user' => ['name' => $identity->name, 'role' => $identity->role],
                     'workspace' => ['id' => $identity->workspaceId, 'name' => $identity->workspaceName],
-                    'workspaces' => collect(config('desk.workspaces'))->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
+                    'workspaces' => $identity->isDemo ? collect(config('desk.workspaces'))->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values() : [['id' => $identity->workspaceId, 'name' => $identity->workspaceName]],
                     'canWrite' => $identity->canWrite(),
-                    'demo' => true,
+                    'demo' => $identity->isDemo,
+                    'links' => ['pitmetric' => PitMetricBridge::configured() ? PitMetricBridge::url('/apps/buttidesk/return') : null],
                     'timezone' => config('desk.timezone'),
                 ];
             },
