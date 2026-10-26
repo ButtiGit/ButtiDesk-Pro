@@ -51,7 +51,7 @@ final class DeskController extends Controller
         $query = Ticket::with(['client', 'supplier'])->withSum('worklogs', 'duration_minutes');
         if ($search = $filters['q'] ?? null) {
             $query->where(function (Builder $query) use ($search): void {
-                $query->where('title', 'like', '%'.$search.'%')->orWhere('category', 'like', '%'.$search.'%');
+                $query->whereLike('title', '%'.$search.'%')->orWhereLike('category', '%'.$search.'%');
             });
         }
         foreach (['status', 'priority'] as $key) {
@@ -72,7 +72,7 @@ final class DeskController extends Controller
         $filters = $request->validate(['q' => ['nullable', 'string', 'max:120'], 'type' => ['nullable', Rule::in(['client', 'supplier', 'both'])]]);
         $query = Contact::query();
         if ($search = $filters['q'] ?? null) {
-            $query->where(fn (Builder $q) => $q->where('name', 'like', '%'.$search.'%')->orWhere('company', 'like', '%'.$search.'%'));
+            $query->where(fn (Builder $q) => $q->whereLike('name', '%'.$search.'%')->orWhereLike('company', '%'.$search.'%'));
         }
         if ($type = $filters['type'] ?? null) {
             $query->whereIn('type', [$type, 'both']);

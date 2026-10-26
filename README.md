@@ -96,7 +96,7 @@ composer test        # Pest: dominio, tenant, ruoli, validazione, demo chiusa in
 npm run check        # TypeScript strict + Prettier + build Vite
 ```
 
-In Docker anteponi `docker compose exec app` per lint/analisi/build; per i test usa `docker compose exec -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -e DB_URL= app composer test`. I test usano SQLite in memoria per default. La CI ripete l’intera suite anche con PostgreSQL 16 e non pubblica né distribuisce nulla.
+In Docker anteponi `docker compose exec app` per lint/analisi/build; per i test usa `docker compose exec -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -e DB_URL= app composer test`. I test usano SQLite in memoria per default. La CI ripete l’intera suite anche con PostgreSQL 16, verifica l’avvio della demo in Docker e non pubblica né distribuisce nulla.
 
 Per provare i test su un PostgreSQL **dedicato ed effimero**, consulta [sviluppo e verifiche](docs/DEVELOPMENT.md). La suite ricrea le tabelle del database di test: non puntarla a database condivisi o reali.
 

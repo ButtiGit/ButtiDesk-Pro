@@ -72,7 +72,7 @@ Provare almeno:
 6. Profilo osservatore: nessuna azione di scrittura disponibile o autorizzata lato server.
 7. Navigazione mobile con menu, focus, tasto Escape, etichette accessibili, scorrimento della sola tabella e assenza di overflow della pagina.
 
-La CI di questa fase contiene test PHP, analisi statica, formattazione, TypeScript e build. L’automazione browser in CI è prevista nella Fase 3.
+La CI di questa fase contiene test PHP su SQLite/PostgreSQL, analisi statica, formattazione, TypeScript, build e una verifica dell’avvio Docker con la pagina demo. L’automazione browser in CI è prevista nella Fase 3.
 
 ## Limiti intenzionali
 

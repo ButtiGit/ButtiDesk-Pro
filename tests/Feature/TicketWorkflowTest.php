@@ -85,7 +85,8 @@ it('validates worklog duration and dates', function (array $changes, string $err
 ]);
 
 it('filters tickets without escaping the tenant condition through an OR search', function () {
-    $this->get('/tickets?q=Sviluppo')->assertInertia(fn (Assert $page) => $page->where('tickets.total', 3)->where('tickets.data.0.workspace_id', 101));
+    $this->get('/tickets?q=sviluppo')->assertInertia(fn (Assert $page) => $page->where('tickets.total', 3)->where('tickets.data.0.workspace_id', 101));
+    $this->get('/contacts?q=aurora')->assertInertia(fn (Assert $page) => $page->where('contacts.total', 1)->where('contacts.data.0.workspace_id', 101));
     $this->get('/tickets?status=done')->assertInertia(fn (Assert $page) => $page->where('tickets.total', 4));
     $this->get('/tickets?status=nonsense')->assertSessionHasErrors('status');
 });

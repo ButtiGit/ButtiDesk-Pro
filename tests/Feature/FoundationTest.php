@@ -34,10 +34,11 @@ it('refuses to seed outside local or testing environments', function () {
 
 it('seeds repeatedly without duplicating or overwriting demo data', function () {
     $counts = DB::table('desk_tickets')->count();
-    DB::table('desk_tickets')->where('id', 1)->update(['title' => 'Accesso al gestionale da ripristinare', 'status' => 'waiting']);
+    $ticketId = DB::table('desk_tickets')->where('workspace_id', 101)->value('id');
+    DB::table('desk_tickets')->where('id', $ticketId)->update(['status' => 'waiting']);
     $this->seed();
     expect(DB::table('desk_tickets')->count())->toBe($counts);
-    expect(DB::table('desk_tickets')->where('id', 1)->value('status'))->toBe('waiting');
+    expect(DB::table('desk_tickets')->where('id', $ticketId)->value('status'))->toBe('waiting');
 });
 
 it('never accepts a workspace supplied as a query parameter', function () {
